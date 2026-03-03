@@ -1,0 +1,22 @@
+services:
+  kfs2:
+    build:
+      context: .
+    image: kfs2-builder:local
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: bash -lc "make fclean && make all && make iso"
+
+  # Optional: run the ISO *inside* the container.
+  # This requires KVM permissions and a Linux host; on macOS/Windows it's
+  # usually better to run QEMU on the host.
+  run-iso:
+    image: kfs2-builder:local
+    depends_on:
+      - kfs2
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    privileged: true
+    command: bash -lc "apt-get update && apt-get install -y --no-install-recommends qemu-system-x86 && qemu-system-i386 -boot d -cdrom build/kfs2.iso -m 256M"
